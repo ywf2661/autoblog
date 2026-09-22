@@ -47,3 +47,23 @@ def test_fetch_feed_entries_skips_broken_feed(mock_parse):
     entries = fetch_feed_entries(["http://broken-feed"])
 
     assert entries == []
+
+
+@patch("rss_reader.feedparser.parse")
+def test_fetch_feed_entries_continues_on_parse_error(mock_parse):
+    mock_parsed = MagicMock()
+    mock_parsed.bozo = False
+    mock_parsed.entries = [
+        {
+            "title": "good entry",
+            "summary": "s",
+            "link": "http://y",
+            "published_parsed": time.struct_time((2026, 9, 22, 0, 0, 0, 0, 0, 0)),
+        }
+    ]
+    mock_parse.side_effect = [Exception("parse error"), mock_parsed]
+
+    entries = fetch_feed_entries(["http://bad-feed", "http://good-feed"])
+
+    assert len(entries) == 1
+    assert entries[0]["title"] == "good entry"
