@@ -56,3 +56,14 @@ def test_write_article_defaults_keywords_when_missing(mock_post):
     )
 
     assert result["keywords"] == []
+
+
+@patch("article_writer.requests.post")
+def test_write_article_raises_on_malformed_response_envelope(mock_post):
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.json.return_value = {"content": []}
+    mock_post.return_value = mock_response
+
+    with pytest.raises(ValueError):
+        write_article(_settings(), {"title": "t", "summary": "s", "link": "http://x"})

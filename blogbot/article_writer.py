@@ -42,7 +42,11 @@ def write_article(settings: Settings, entry: dict) -> dict:
         timeout=60,
     )
     response.raise_for_status()
-    text = response.json()["content"][0]["text"]
+    response_body = response.json()
+    try:
+        text = response_body["content"][0]["text"]
+    except (KeyError, IndexError) as e:
+        raise ValueError(f"Claude 응답 구조 오류: {response_body!r}") from e
     try:
         result = json.loads(text)
     except json.JSONDecodeError as e:
