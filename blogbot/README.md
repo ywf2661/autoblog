@@ -14,8 +14,8 @@ AI(Claude 등) 관련 RSS 피드를 매일 1건 확인해 Claude로 재작성하
 | 이름 | 설명 |
 |---|---|
 | ANTHROPIC_API_KEY | Anthropic API 키 |
-| COUPANG_ACCESS_KEY | 쿠팡파트너스 오픈API access key |
-| COUPANG_SECRET_KEY | 쿠팡파트너스 오픈API secret key |
+| COUPANG_ACCESS_KEY | 쿠팡파트너스 오픈API access key (선택 — 없으면 관련상품 섹션 생략) |
+| COUPANG_SECRET_KEY | 쿠팡파트너스 오픈API secret key (선택 — 없으면 관련상품 섹션 생략) |
 | GOOGLE_CLIENT_ID | Google OAuth 클라이언트 ID (데스크톱 앱) |
 | GOOGLE_CLIENT_SECRET | Google OAuth 클라이언트 secret |
 | GOOGLE_REFRESH_TOKEN | 1회 OAuth 동의로 발급받은 refresh token |
@@ -37,6 +37,7 @@ GitHub Actions가 매일 1회 자동 실행(`.github/workflows/blogbot.yml`, UTC
 
 - Google OAuth 동의 화면이 "테스트" 상태면 refresh_token이 7일 후 만료될 수 있습니다. Cloud Console에서 "게시" 상태로 전환하세요.
 - 애드센스는 저품질/대량 자동생성 콘텐츠에 대한 정책이 있습니다. draft를 반드시 검토 후 발행하세요.
+- 쿠팡파트너스 오픈API 키는 누적 판매 15만원 이상 + 최종승인 후에만 발급됩니다(그 전엔 API 사용 불가). 그 전에는 COUPANG_ACCESS_KEY/SECRET_KEY를 비워두면 봇은 관련상품 섹션 없이 정상 동작하고, 최종승인 후 키를 채워넣으면 자동으로 관련상품 섹션이 붙기 시작합니다.
 
 ## 테스트
 

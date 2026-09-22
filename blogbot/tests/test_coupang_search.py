@@ -60,6 +60,16 @@ def test_search_products_encodes_keyword_in_request_url(mock_get):
 
 
 @patch("coupang_search.requests.get")
+def test_search_products_skips_request_when_keys_missing(mock_get):
+    settings = Settings("ak", "", "", "gcid", "gcs", "grt", "blogid")
+
+    result = search_products(settings, "노트북")
+
+    assert result == []
+    mock_get.assert_not_called()
+
+
+@patch("coupang_search.requests.get")
 def test_search_products_returns_empty_list_on_malformed_json(mock_get):
     mock_response = MagicMock()
     mock_response.raise_for_status.return_value = None
