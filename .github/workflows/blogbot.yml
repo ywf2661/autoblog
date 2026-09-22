@@ -1,4 +1,5 @@
 name: ai-blogbot
+# re-index trigger
 
 on:
   schedule:
