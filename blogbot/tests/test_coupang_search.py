@@ -41,3 +41,15 @@ def test_search_products_returns_empty_list_on_request_error(mock_get):
     result = search_products(_settings(), "노트북")
 
     assert result == []
+
+
+@patch("coupang_search.requests.get")
+def test_search_products_returns_empty_list_on_malformed_json(mock_get):
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.json.side_effect = ValueError("bad json")
+    mock_get.return_value = mock_response
+
+    result = search_products(_settings(), "노트북")
+
+    assert result == []

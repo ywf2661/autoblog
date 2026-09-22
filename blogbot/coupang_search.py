@@ -25,10 +25,10 @@ def search_products(settings: Settings, keyword: str, limit: int = 3) -> list[di
             f"{BASE_URL}{SEARCH_PATH}?{query}", headers=headers, timeout=10
         )
         response.raise_for_status()
-    except requests.RequestException:
+        products = response.json().get("data", {}).get("productData", [])
+    except (requests.RequestException, ValueError, AttributeError, KeyError):
         return []
 
-    products = response.json().get("data", {}).get("productData", [])
     return [
         {
             "productName": p.get("productName", ""),
