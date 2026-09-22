@@ -25,4 +25,11 @@ def test_run_sends_only_new_high_discount_deals(
 
     assert sent_count == 1  # 1번만 신규 + 고할인 (2번은 할인율 미달, 3번은 중복)
     mock_send.assert_called_once()
+    call_args = mock_send.call_args[0]  # (token, chat_id, message)
+    assert call_args[0] == "t"
+    assert call_args[1] == "c"
+    assert "A" in call_args[2]  # deal 1's productName reached send, not deal 2/3
+
     mock_save_sent.assert_called_once()
+    saved_ids = mock_save_sent.call_args[0][1]
+    assert 1 in saved_ids

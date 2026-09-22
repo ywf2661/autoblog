@@ -35,6 +35,6 @@ def test_save_sent_ids_trims_oldest_first():
             path = os.path.join(tmp, "sent.json")
             save_sent_ids(path, {1: None, 2: None, 3: None, 4: None, 5: None})
             result = load_sent_ids(path)
-            assert result == {3: None, 4: None, 5: None}
+            assert list(result) == [3, 4, 5]
     finally:
         dedup.MAX_HISTORY = original_max

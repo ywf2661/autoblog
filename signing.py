@@ -7,12 +7,7 @@ def generate_hmac_signature(
     secret_key: str, method: str, path: str, query: str = ""
 ) -> tuple[str, str]:
     """쿠팡파트너스 API 서명 생성. (signed_date, signature) 튜플 반환."""
-    signed_date = (
-        time.strftime("%y%m%d", time.gmtime())
-        + "T"
-        + time.strftime("%H%M%S", time.gmtime())
-        + "Z"
-    )
+    signed_date = time.strftime("%y%m%dT%H%M%SZ", time.gmtime())
     message = signed_date + method + path + query
     signature = hmac.new(
         secret_key.encode("utf-8"), message.encode("utf-8"), hashlib.sha256

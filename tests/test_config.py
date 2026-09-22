@@ -4,6 +4,7 @@ from config import load_settings
 
 
 def test_load_settings_raises_when_keys_missing(monkeypatch):
+    monkeypatch.setattr("config.load_dotenv", lambda *a, **k: None)
     monkeypatch.delenv("COUPANG_ACCESS_KEY", raising=False)
     monkeypatch.delenv("COUPANG_SECRET_KEY", raising=False)
     monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)

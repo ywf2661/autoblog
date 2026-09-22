@@ -17,4 +17,9 @@ def fetch_goldbox_deals(settings: Settings) -> list[dict]:
     }
     response = requests.get(BASE_URL + GOLDBOX_PATH, headers=headers, timeout=10)
     response.raise_for_status()
-    return response.json().get("data", {}).get("productData", [])
+    data = response.json().get("data", [])
+    if isinstance(data, dict):
+        return data.get("productData", [])
+    if isinstance(data, list):
+        return data
+    return []
