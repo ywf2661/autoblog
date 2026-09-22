@@ -23,3 +23,21 @@ def test_assemble_post_html_skips_section_when_no_products():
     html = assemble_post_html("<p>본문</p>", [])
 
     assert html == "<p>본문</p>"
+
+
+def test_assemble_post_html_escapes_special_characters():
+    html = assemble_post_html(
+        "<p>본문</p>",
+        [
+            {
+                "productName": "A&W <Best>",
+                "productUrl": "http://example.com?a=1&b=2",
+                "productImage": "",
+                "productPrice": 5000,
+            }
+        ],
+    )
+
+    assert "A&amp;W &lt;Best&gt;" in html
+    assert "http://example.com?a=1&amp;b=2" in html
+    assert '<li><a href="http://example.com?a=1&amp;b=2">A&amp;W &lt;Best&gt;</a> - 5,000원</li>' in html
