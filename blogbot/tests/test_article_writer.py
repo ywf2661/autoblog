@@ -7,7 +7,7 @@ from article_writer import write_article
 
 
 def _settings():
-    return Settings("ak", "cak", "csk", "gcid", "gcs", "grt", "blogid")
+    return Settings("ak", "gcid", "gcs", "grt", "blogid")
 
 
 @patch("article_writer.requests.post")

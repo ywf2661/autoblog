@@ -1,81 +1,73 @@
-from unittest.mock import MagicMock, patch
-from urllib.parse import quote_plus
+import json
 
-import requests
-
-from config import Settings
+import coupang_search
 from coupang_search import search_products
 
 
-def _settings():
-    return Settings("ak", "cak", "csk", "gcid", "gcs", "grt", "blogid")
+def _write_catalog(tmp_path, monkeypatch, catalog):
+    path = tmp_path / "curated_products.json"
+    path.write_text(json.dumps(catalog), encoding="utf-8")
+    monkeypatch.setattr(coupang_search, "CURATED_PRODUCTS_PATH", str(path))
 
 
-@patch("coupang_search.requests.get")
-def test_search_products_returns_product_list(mock_get):
-    mock_response = MagicMock()
-    mock_response.raise_for_status.return_value = None
-    mock_response.json.return_value = {
-        "data": {
-            "productData": [
-                {
-                    "productName": "노트북",
-                    "productUrl": "http://x",
-                    "productImage": "http://img",
-                    "productPrice": 1000000,
-                }
-            ]
-        }
-    }
-    mock_get.return_value = mock_response
+def test_search_products_matches_category_by_substring(tmp_path, monkeypatch):
+    _write_catalog(
+        tmp_path,
+        monkeypatch,
+        {"노트북": [{"productName": "노트북 A", "productUrl": "http://x",
+                    "productImage": "http://img", "productPrice": 1000000}]},
+    )
 
-    result = search_products(_settings(), "노트북")
+    result = search_products("최신 노트북 추천")
 
     assert len(result) == 1
-    assert result[0]["productName"] == "노트북"
+    assert result[0]["productName"] == "노트북 A"
 
 
-@patch("coupang_search.requests.get")
-def test_search_products_returns_empty_list_on_request_error(mock_get):
-    mock_get.side_effect = requests.RequestException("boom")
+def test_search_products_falls_back_to_default_category(tmp_path, monkeypatch):
+    _write_catalog(
+        tmp_path,
+        monkeypatch,
+        {
+            "노트북": [{"productName": "노트북 A", "productUrl": "http://x",
+                        "productImage": "http://img", "productPrice": 1000000}],
+            "기본": [{"productName": "기본상품", "productUrl": "http://y",
+                     "productImage": "http://img2", "productPrice": 5000}],
+        },
+    )
 
-    result = search_products(_settings(), "노트북")
+    result = search_products("전혀 매칭 안 되는 키워드")
+
+    assert len(result) == 1
+    assert result[0]["productName"] == "기본상품"
+
+
+def test_search_products_returns_empty_when_no_match_and_no_default(tmp_path, monkeypatch):
+    _write_catalog(tmp_path, monkeypatch, {"노트북": []})
+
+    result = search_products("전혀 매칭 안 되는 키워드")
+
+    assert result == []
+
+
+def test_search_products_returns_empty_when_file_missing(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        coupang_search, "CURATED_PRODUCTS_PATH", str(tmp_path / "missing.json")
+    )
+
+    result = search_products("노트북")
 
     assert result == []
 
 
-@patch("coupang_search.requests.get")
-def test_search_products_encodes_keyword_in_request_url(mock_get):
-    mock_response = MagicMock()
-    mock_response.raise_for_status.return_value = None
-    mock_response.json.return_value = {"data": {"productData": []}}
-    mock_get.return_value = mock_response
+def test_search_products_respects_limit(tmp_path, monkeypatch):
+    products = [
+        {"productName": f"상품{i}", "productUrl": "http://x",
+         "productImage": "http://img", "productPrice": 1000}
+        for i in range(5)
+    ]
+    _write_catalog(tmp_path, monkeypatch, {"이어폰": products})
 
-    keyword = "블루투스 이어폰"
-    search_products(_settings(), keyword)
+    result = search_products("블루투스 이어폰", limit=2)
 
-    called_url = mock_get.call_args[0][0]
-    assert quote_plus(keyword) in called_url
-    assert keyword not in called_url
-
-
-@patch("coupang_search.requests.get")
-def test_search_products_skips_request_when_keys_missing(mock_get):
-    settings = Settings("ak", "", "", "gcid", "gcs", "grt", "blogid")
-
-    result = search_products(settings, "노트북")
-
-    assert result == []
-    mock_get.assert_not_called()
-
-
-@patch("coupang_search.requests.get")
-def test_search_products_returns_empty_list_on_malformed_json(mock_get):
-    mock_response = MagicMock()
-    mock_response.raise_for_status.return_value = None
-    mock_response.json.side_effect = ValueError("bad json")
-    mock_get.return_value = mock_response
-
-    result = search_products(_settings(), "노트북")
-
-    assert result == []
+    assert len(result) == 2

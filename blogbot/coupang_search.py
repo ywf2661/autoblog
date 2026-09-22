@@ -1,44 +1,30 @@
-from urllib.parse import urlencode
+import json
 
-import requests
-
-from config import Settings
-from signing import build_auth_header
-
-BASE_URL = "https://api-gateway.coupang.com"
-SEARCH_PATH = "/v2/providers/affiliate_open_api/apis/openapi/products/search"
+CURATED_PRODUCTS_PATH = "curated_products.json"
+DEFAULT_CATEGORY = "기본"
 
 
-def search_products(settings: Settings, keyword: str, limit: int = 3) -> list[dict]:
-    """키워드로 쿠팡파트너스 상품을 검색한다. 실패하거나 결과가 없으면 빈 리스트를 반환."""
-    if not settings.coupang_access_key or not settings.coupang_secret_key:
-        return []
-
-    query = urlencode({"keyword": keyword, "limit": limit})
-    headers = {
-        "Authorization": build_auth_header(
-            settings.coupang_access_key,
-            settings.coupang_secret_key,
-            "GET",
-            SEARCH_PATH,
-            query,
-        ),
-        "Content-Type": "application/json;charset=UTF-8",
-    }
+def _load_catalog(path: str) -> dict:
     try:
-        response = requests.get(
-            f"{BASE_URL}{SEARCH_PATH}?{query}", headers=headers, timeout=10
-        )
-        response.raise_for_status()
-        products = response.json().get("data", {}).get("productData", [])
-        return [
-            {
-                "productName": p.get("productName", ""),
-                "productUrl": p.get("productUrl", ""),
-                "productImage": p.get("productImage", ""),
-                "productPrice": int(p.get("productPrice") or 0),
-            }
-            for p in products[:limit]
-        ]
-    except (requests.RequestException, ValueError, AttributeError, KeyError, TypeError):
-        return []
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def search_products(keyword: str, limit: int = 3) -> list[dict]:
+    """키워드에 맞는 수동 큐레이션 쿠팡 상품을 반환한다.
+
+    매칭되는 카테고리가 없으면 '기본' 카테고리, 그마저 없으면 빈 리스트.
+    """
+    catalog = _load_catalog(CURATED_PRODUCTS_PATH)
+    keyword_lower = keyword.lower()
+    # ponytail: 단순 부분일치 — 동의어/형태소 매칭은 안 함. 매칭률이 낮으면
+    # 카테고리 키에 동의어를 추가하거나 별도 동의어 맵을 두는 식으로 확장.
+    for category, products in catalog.items():
+        if category == DEFAULT_CATEGORY:
+            continue
+        category_lower = category.lower()
+        if category_lower in keyword_lower or keyword_lower in category_lower:
+            return products[:limit]
+    return catalog.get(DEFAULT_CATEGORY, [])[:limit]

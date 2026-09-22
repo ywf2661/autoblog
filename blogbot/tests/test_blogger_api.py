@@ -5,7 +5,7 @@ from blogger_api import refresh_access_token, create_draft_post
 
 
 def _settings():
-    return Settings("ak", "cak", "csk", "gcid", "gcs", "grt", "12345")
+    return Settings("ak", "gcid", "gcs", "grt", "12345")
 
 
 @patch("blogger_api.requests.post")

@@ -41,7 +41,7 @@ def test_run_creates_draft_for_next_entry(
 
     assert result == "http://blogger-edit-url"
     mock_save_posted.assert_called_once()
-    mock_search.assert_called_once_with(mock_load_settings.return_value, "노트북")
+    mock_search.assert_called_once_with("노트북")
 
 
 @patch("main.load_posted_ids")

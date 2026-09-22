@@ -34,7 +34,7 @@ def run() -> str | None:
     article = write_article(settings, entry)
 
     keywords = article.get("keywords", [])
-    products = search_products(settings, keywords[0]) if keywords else []
+    products = search_products(keywords[0]) if keywords else []
 
     html = assemble_post_html(article["body_html"], products)
 
