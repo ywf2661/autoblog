@@ -1,5 +1,6 @@
 .env
 __pycache__/
 *.pyc
+sent_ids.json.bak
 .superpowers/
 .worktrees/
