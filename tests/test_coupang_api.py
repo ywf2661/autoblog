@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from config import Settings
-from coupang_api import fetch_goldbox_deals
+from coupang_api import BASE_URL, GOLDBOX_PATH, fetch_goldbox_deals
 
 
 @patch("coupang_api.requests.get")
@@ -30,6 +30,10 @@ def test_fetch_goldbox_deals_returns_product_list(mock_get):
 
     assert len(deals) == 1
     assert deals[0]["productId"] == 1
+
+    call_args = mock_get.call_args
+    assert call_args.args[0] == BASE_URL + GOLDBOX_PATH
+    assert call_args.kwargs["headers"].get("Authorization")
 
 
 @patch("coupang_api.requests.get")
