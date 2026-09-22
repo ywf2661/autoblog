@@ -17,9 +17,27 @@ def load_posted_ids(path: str) -> set[str]:
 
 
 def save_posted_ids(path: str, ids: set[str]) -> None:
-    trimmed = list(ids)[-MAX_HISTORY:]
+    # Read existing ordered list (oldest-first)
+    existing_order = []
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            existing_order = json.load(f)
+
+    # Build new ordered list: keep existing entries that are still in ids
+    ordered = [entry for entry in existing_order if entry in ids]
+
+    # Add any new entries (those in ids but not in existing_order)
+    existing_set = set(existing_order)
+    new_entries = [entry for entry in ids if entry not in existing_set]
+    ordered.extend(new_entries)
+
+    # Trim from front (oldest) if exceeds MAX_HISTORY
+    if len(ordered) > MAX_HISTORY:
+        ordered = ordered[-MAX_HISTORY:]
+
+    # Write to file
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(trimmed, f)
+        json.dump(ordered, f)
 
 
 def pick_next_entry(entries: list[dict], posted_ids: set[str]) -> dict | None:
