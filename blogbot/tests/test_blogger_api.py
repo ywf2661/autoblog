@@ -32,3 +32,5 @@ def test_create_draft_post_returns_edit_url(mock_post):
     assert url == "https://www.blogger.com/blog/post/edit/12345/999"
     args, kwargs = mock_post.call_args
     assert kwargs["json"] == {"title": "제목", "content": "<p>본문</p>"}
+    # Verify isDraft=true is in the request URL to prevent accidental live publishing
+    assert "isDraft=true" in args[0]
