@@ -1,0 +1,3 @@
+https://www.aitimes.com/rss/allArticle.xml
+https://techcrunch.com/category/artificial-intelligence/feed/
+https://www.anthropic.com/rss.xml

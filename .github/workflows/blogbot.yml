@@ -1,0 +1,38 @@
+name: ai-blogbot
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # 매일 UTC 00:00 (KST 09:00)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: blogbot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+          COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
+        run: python main.py
+      - name: posted_ids.json 커밋 (중복게시 이력 유지)
+        run: |
+          git config user.name "ai-blogbot"
+          git config user.email "ai-blogbot@users.noreply.github.com"
+          git add posted_ids.json
+          git diff --staged --quiet || git commit -m "chore: update posted_ids"
+          git push
