@@ -36,8 +36,11 @@ def write_article(settings: Settings, entry: dict) -> dict:
         },
         json={
             "model": MODEL,
-            "max_tokens": 2000,
-            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 4000,
+            "messages": [
+                {"role": "user", "content": prompt},
+                {"role": "assistant", "content": "{"},
+            ],
         },
         timeout=60,
     )
@@ -48,7 +51,7 @@ def write_article(settings: Settings, entry: dict) -> dict:
     except (KeyError, IndexError) as e:
         raise ValueError(f"Claude 응답 구조 오류: {response_body!r}") from e
     try:
-        result = json.loads(text)
+        result = json.loads("{" + text)
     except json.JSONDecodeError as e:
         raise ValueError(f"Claude 응답이 JSON이 아님: {text!r}") from e
 

@@ -17,7 +17,7 @@ def test_write_article_parses_json_response(mock_post):
     mock_response.json.return_value = {
         "content": [
             {
-                "text": '{"title": "제목", "body_html": "<p>본문</p>", "keywords": ["노트북"]}'
+                "text": '"title": "제목", "body_html": "<p>본문</p>", "keywords": ["노트북"]}'
             }
         ]
     }
@@ -29,6 +29,11 @@ def test_write_article_parses_json_response(mock_post):
 
     assert result["title"] == "제목"
     assert result["keywords"] == ["노트북"]
+    assert mock_post.call_args.kwargs["json"]["messages"][-1] == {
+        "role": "assistant",
+        "content": "{",
+    }
+    assert mock_post.call_args.kwargs["json"]["max_tokens"] == 4000
 
 
 @patch("article_writer.requests.post")
@@ -47,7 +52,7 @@ def test_write_article_defaults_keywords_when_missing(mock_post):
     mock_response = MagicMock()
     mock_response.raise_for_status.return_value = None
     mock_response.json.return_value = {
-        "content": [{"text": '{"title": "제목", "body_html": "<p>본문</p>"}'}]
+        "content": [{"text": '"title": "제목", "body_html": "<p>본문</p>"}'}]
     }
     mock_post.return_value = mock_response
 

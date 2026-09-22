@@ -1,4 +1,5 @@
 import feedparser
+import requests
 
 
 def fetch_feed_entries(feed_urls: list[str]) -> list[dict]:
@@ -6,7 +7,8 @@ def fetch_feed_entries(feed_urls: list[str]) -> list[dict]:
     entries = []
     for url in feed_urls:
         try:
-            parsed = feedparser.parse(url)
+            response = requests.get(url, timeout=10)
+            parsed = feedparser.parse(response.content)
             if parsed.bozo and not parsed.entries:
                 continue
             for entry in parsed.entries:
@@ -22,5 +24,6 @@ def fetch_feed_entries(feed_urls: list[str]) -> list[dict]:
                     }
                 )
         except Exception:
+            print(f"RSS 피드 파싱 실패, 건너뜀: {url}")
             continue
     return entries

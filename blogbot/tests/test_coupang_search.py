@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+from urllib.parse import quote_plus
 
 import requests
 
@@ -41,6 +42,21 @@ def test_search_products_returns_empty_list_on_request_error(mock_get):
     result = search_products(_settings(), "노트북")
 
     assert result == []
+
+
+@patch("coupang_search.requests.get")
+def test_search_products_encodes_keyword_in_request_url(mock_get):
+    mock_response = MagicMock()
+    mock_response.raise_for_status.return_value = None
+    mock_response.json.return_value = {"data": {"productData": []}}
+    mock_get.return_value = mock_response
+
+    keyword = "블루투스 이어폰"
+    search_products(_settings(), keyword)
+
+    called_url = mock_get.call_args[0][0]
+    assert quote_plus(keyword) in called_url
+    assert keyword not in called_url
 
 
 @patch("coupang_search.requests.get")

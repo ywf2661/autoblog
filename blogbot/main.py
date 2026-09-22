@@ -21,10 +21,14 @@ def run() -> str | None:
 
     feed_urls = _load_feed_urls(FEEDS_PATH)
     entries = fetch_feed_entries(feed_urls)
+    if not entries:
+        print(f"수집된 기사가 없습니다 (피드 {len(feed_urls)}개 모두 실패했을 수 있음).")
+        return None
 
     posted_ids = load_posted_ids(POSTED_IDS_PATH)
     entry = pick_next_entry(entries, posted_ids)
     if entry is None:
+        print(f"기사 {len(entries)}건을 수집했지만 새로운 기사가 없습니다.")
         return None
 
     article = write_article(settings, entry)

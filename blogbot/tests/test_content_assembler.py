@@ -17,12 +17,14 @@ def test_assemble_post_html_appends_products_section():
     assert "<p>본문</p>" in html
     assert "노트북" in html
     assert "1,000,000원" in html
+    assert "쿠팡 파트너스 활동의 일환으로" in html
 
 
 def test_assemble_post_html_skips_section_when_no_products():
     html = assemble_post_html("<p>본문</p>", [])
 
     assert html == "<p>본문</p>"
+    assert "쿠팡 파트너스" not in html
 
 
 def test_assemble_post_html_escapes_special_characters():

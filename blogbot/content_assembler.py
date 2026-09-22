@@ -10,5 +10,9 @@ def assemble_post_html(body_html: str, products: list[dict]) -> str:
         f'<li><a href="{html.escape(p["productUrl"])}">{html.escape(p["productName"])}</a> - {p["productPrice"]:,}원</li>'
         for p in products
     )
-    products_section = f"<h3>관련 상품</h3><ul>{items}</ul>"
+    disclosure = (
+        '<p><small>이 포스팅은 쿠팡 파트너스 활동의 일환으로, '
+        "이에 따른 일정액의 수수료를 제공받습니다.</small></p>"
+    )
+    products_section = f"<h3>관련 상품</h3><ul>{items}</ul>{disclosure}"
     return f"{body_html}\n{products_section}"
