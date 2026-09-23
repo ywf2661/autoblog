@@ -37,4 +37,5 @@ jobs:
           git add tistory_drafts/ 2>/dev/null || true
           git add generated_images/ 2>/dev/null || true
           git diff --staged --quiet || git commit -m "chore: update posted_ids"
+          git pull --rebase origin master
           git push
