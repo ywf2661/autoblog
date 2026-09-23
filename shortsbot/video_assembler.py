@@ -1,15 +1,31 @@
 import os
 import subprocess
 
+# ffmpeg's fontconfig fallback (DejaVu Sans on ubuntu-latest) has no Hangul
+# glyphs, so Korean captions would silently render as blank boxes. Pin a
+# Hangul-capable font instead (installed via .github/workflows/shortsbot.yml).
+FONT_PATH = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"
 
-def _escape_drawtext(text: str) -> str:
-    """ffmpeg drawtext 필터용 특수문자 이스케이프."""
-    return text.replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
+
+def _run_ffmpeg(cmd: list[str]) -> None:
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+    except subprocess.CalledProcessError as e:
+        print(e.stderr.decode(errors="replace"))
+        raise
 
 
-def _build_segment(image_path: str | None, audio_path: str, text: str, out_path: str) -> None:
+def _build_segment(
+    image_path: str | None, audio_path: str, text: str, out_path: str, index: int
+) -> None:
+    out_dir = os.path.dirname(out_path) or "."
+    caption_path = os.path.join(out_dir, f"caption_{index}.txt")
+    with open(caption_path, "w", encoding="utf-8") as f:
+        f.write(text)
+
     drawtext = (
-        f"drawtext=text='{_escape_drawtext(text)}':fontcolor=white:fontsize=48:"
+        f"drawtext=textfile='{caption_path}':fontfile='{FONT_PATH}':"
+        "fontcolor=white:fontsize=48:"
         "box=1:boxcolor=black@0.6:boxborderw=16:x=(w-text_w)/2:y=h-200"
     )
     if image_path is None:
@@ -27,7 +43,7 @@ def _build_segment(image_path: str | None, audio_path: str, text: str, out_path:
         "-pix_fmt", "yuv420p", "-shortest",
         out_path,
     ]
-    subprocess.run(cmd, check=True, capture_output=True)
+    _run_ffmpeg(cmd)
 
 
 def assemble_video(
@@ -51,7 +67,7 @@ def assemble_video(
         zip(sentences, audio_paths, image_paths), start=1
     ):
         segment_path = os.path.join(out_dir, f"segment_{i}.mp4")
-        _build_segment(image_path, audio_path, sentence, segment_path)
+        _build_segment(image_path, audio_path, sentence, segment_path, i)
         segment_paths.append(segment_path)
 
     concat_list_path = os.path.join(out_dir, "concat_list.txt")
@@ -59,12 +75,10 @@ def assemble_video(
         for segment_path in segment_paths:
             f.write(f"file '{os.path.abspath(segment_path)}'\n")
 
-    subprocess.run(
+    _run_ffmpeg(
         [
             "ffmpeg", "-y", "-f", "concat", "-safe", "0",
             "-i", concat_list_path, "-c", "copy", out_path,
-        ],
-        check=True,
-        capture_output=True,
+        ]
     )
     return out_path
