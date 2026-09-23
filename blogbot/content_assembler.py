@@ -7,7 +7,9 @@ def assemble_post_html(body_html: str, products: list[dict]) -> str:
         return body_html
 
     items = "".join(
-        f'<li><a href="{html.escape(p["productUrl"])}">{html.escape(p["productName"])}</a> - {p["productPrice"]:,}원</li>'
+        f'<li><a href="{html.escape(p["productUrl"])}">'
+        f'<img src="{html.escape(p["productImage"])}" alt="{html.escape(p["productName"])}" style="max-width:200px"><br>'
+        f'{html.escape(p["productName"])}</a> - {p["productPrice"]:,}원</li>'
         for p in products
     )
     disclosure = (

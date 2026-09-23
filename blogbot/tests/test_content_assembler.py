@@ -8,7 +8,7 @@ def test_assemble_post_html_appends_products_section():
             {
                 "productName": "노트북",
                 "productUrl": "http://x",
-                "productImage": "",
+                "productImage": "http://img",
                 "productPrice": 1000000,
             }
         ],
@@ -17,6 +17,7 @@ def test_assemble_post_html_appends_products_section():
     assert "<p>본문</p>" in html
     assert "노트북" in html
     assert "1,000,000원" in html
+    assert '<img src="http://img"' in html
     assert "쿠팡 파트너스 활동의 일환으로" in html
 
 
@@ -34,7 +35,7 @@ def test_assemble_post_html_escapes_special_characters():
             {
                 "productName": "A&W <Best>",
                 "productUrl": "http://example.com?a=1&b=2",
-                "productImage": "",
+                "productImage": "http://img?a=1&b=2",
                 "productPrice": 5000,
             }
         ],
@@ -42,4 +43,9 @@ def test_assemble_post_html_escapes_special_characters():
 
     assert "A&amp;W &lt;Best&gt;" in html
     assert "http://example.com?a=1&amp;b=2" in html
-    assert '<li><a href="http://example.com?a=1&amp;b=2">A&amp;W &lt;Best&gt;</a> - 5,000원</li>' in html
+    assert 'src="http://img?a=1&amp;b=2"' in html
+    assert (
+        '<li><a href="http://example.com?a=1&amp;b=2">'
+        '<img src="http://img?a=1&amp;b=2" alt="A&amp;W &lt;Best&gt;" style="max-width:200px"><br>'
+        'A&amp;W &lt;Best&gt;</a> - 5,000원</li>'
+    ) in html
