@@ -18,7 +18,7 @@ from video_assembler import assemble_video
 from youtube_api import refresh_access_token, upload_video
 
 FEEDS_PATH = os.path.join(os.path.dirname(__file__), "..", "blogbot", "feeds.txt")
-POSTED_IDS_PATH = "shorts_posted_ids.json"
+POSTED_IDS_PATH = os.path.join(os.path.dirname(__file__), "shorts_posted_ids.json")
 WORK_DIR = "work"
 CANDIDATE_LIMIT = 10
 
@@ -59,8 +59,15 @@ def run() -> str | None:
     os.makedirs(work_dir, exist_ok=True)
 
     image_paths = []
-    for i, sentence in enumerate(script["sentences"], start=1):
-        image_bytes = generate_image(settings, sentence)
+    for i, image_prompt in enumerate(script["image_prompts"], start=1):
+        image_bytes = generate_image(settings, image_prompt)
+        if image_bytes is not None and not (
+            image_bytes.startswith(b"\x89PNG") or image_bytes.startswith(b"\xff\xd8")
+        ):
+            # HF returned something that isn't actually image data (e.g. an
+            # error body) -- ffmpeg would fail to decode it and kill the
+            # whole run. Fall back to a solid-color background instead.
+            image_bytes = None
         if image_bytes is None:
             image_paths.append(None)
             continue

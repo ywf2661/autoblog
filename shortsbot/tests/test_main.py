@@ -71,8 +71,9 @@ def test_run_uploads_video_for_chosen_candidate(
         "title": "제목",
         "sentences": ["문장1", "문장2"],
         "keywords": ["노트북"],
+        "image_prompts": ["prompt1", "prompt2"],
     }
-    mock_generate_image.side_effect = [b"bytes1", None]
+    mock_generate_image.side_effect = [b"\x89PNG\r\n\x1a\n" + b"rest", None]
     mock_save_image.return_value = "work/image_1.png"
     mock_synth.return_value = ["work/1.mp3", "work/2.mp3"]
     mock_assemble.return_value = "work/final.mp4"
@@ -86,6 +87,8 @@ def test_run_uploads_video_for_chosen_candidate(
     assert result == "https://youtu.be/abc123"
     mock_save_posted.assert_called_once()
     mock_search.assert_called_once_with("노트북")
+    mock_generate_image.assert_any_call(settings, "prompt1")
+    mock_generate_image.assert_any_call(settings, "prompt2")
     mock_assemble.assert_called_once()
     assemble_args = mock_assemble.call_args[0]
     assert assemble_args[0] == ["문장1", "문장2"]
@@ -95,6 +98,63 @@ def test_run_uploads_video_for_chosen_candidate(
         "문장1 문장2", [], "https://t.me/x", ["노트북"]
     )
     mock_upload.assert_called_once_with(settings, "token", "work/final.mp4", "제목", "설명")
+
+
+@patch("main.save_posted_ids")
+@patch("main.upload_video")
+@patch("main.refresh_access_token")
+@patch("main.build_description")
+@patch("main.search_products")
+@patch("main.assemble_video")
+@patch("main.synthesize")
+@patch("main.save_generated_image")
+@patch("main.generate_image")
+@patch("main.pick_and_write_script")
+@patch("main.load_posted_ids")
+@patch("main.fetch_feed_entries")
+@patch("main.load_settings")
+@patch("builtins.open", new_callable=mock_open, read_data="http://feed1\n")
+def test_run_falls_back_to_none_when_image_bytes_are_not_a_valid_image(
+    mock_file,
+    mock_load_settings,
+    mock_fetch,
+    mock_load_posted,
+    mock_pick_script,
+    mock_generate_image,
+    mock_save_image,
+    mock_synth,
+    mock_assemble,
+    mock_search,
+    mock_build_description,
+    mock_refresh,
+    mock_upload,
+    mock_save_posted,
+):
+    settings = MagicMock()
+    settings.telegram_channel_url = "https://t.me/x"
+    mock_load_settings.return_value = settings
+    mock_fetch.return_value = _feed_entries()
+    mock_load_posted.return_value = set()
+    mock_pick_script.return_value = {
+        "chosen_link": "http://b",
+        "title": "제목",
+        "sentences": ["문장1"],
+        "keywords": [],
+        "image_prompts": ["prompt1"],
+    }
+    mock_generate_image.return_value = b"not an image"
+    mock_synth.return_value = ["work/1.mp3"]
+    mock_assemble.return_value = "work/final.mp4"
+    mock_search.return_value = []
+    mock_build_description.return_value = "설명"
+    mock_refresh.return_value = "token"
+    mock_upload.return_value = "https://youtu.be/abc123"
+
+    main.run()
+
+    mock_save_image.assert_not_called()
+    assemble_args = mock_assemble.call_args[0]
+    assert assemble_args[2] == [None]
 
 
 @patch("main.load_posted_ids")
@@ -166,9 +226,13 @@ def test_run_does_not_save_posted_ids_when_upload_fails(
     mock_fetch.return_value = _feed_entries()
     mock_load_posted.return_value = set()
     mock_pick_script.return_value = {
-        "chosen_link": "http://b", "title": "제목", "sentences": ["문장1"], "keywords": [],
+        "chosen_link": "http://b",
+        "title": "제목",
+        "sentences": ["문장1"],
+        "keywords": [],
+        "image_prompts": ["prompt1"],
     }
-    mock_generate_image.return_value = b"bytes1"
+    mock_generate_image.return_value = b"\x89PNG\r\n\x1a\n" + b"rest"
     mock_save_image.return_value = "work/image_1.png"
     mock_synth.return_value = ["work/1.mp3"]
     mock_assemble.return_value = "work/final.mp4"
