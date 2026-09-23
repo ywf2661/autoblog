@@ -32,14 +32,21 @@ def generate_image(settings: Settings, prompt: str) -> bytes | None:
             timeout=60,
         )
         response.raise_for_status()
-        parts = response.json()["candidates"][0]["content"]["parts"]
+        body = response.json()
+        parts = body["candidates"][0]["content"]["parts"]
         for part in parts:
             # 문서마다 camelCase/snake_case가 섞여 있어 둘 다 확인
             inline = part.get("inlineData") or part.get("inline_data")
             if inline:
                 return base64.b64decode(inline["data"])
+        print(f"이미지 생성 응답에 이미지 파트 없음, 건너뜀: {body!r}")
         return None
-    except (requests.RequestException, KeyError, IndexError, ValueError, TypeError):
+    except requests.RequestException as e:
+        body_text = e.response.text if e.response is not None else "(응답 없음)"
+        print(f"이미지 생성 요청 실패, 건너뜀: {e} / 응답: {body_text}")
+        return None
+    except (KeyError, IndexError, ValueError, TypeError) as e:
+        print(f"이미지 생성 응답 파싱 실패, 건너뜀: {e}")
         return None
 
 
