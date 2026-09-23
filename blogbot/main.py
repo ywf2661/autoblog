@@ -6,12 +6,14 @@ from config import load_settings
 from content_assembler import assemble_post_html
 from coupang_search import search_products
 from dedup import hash_link, load_posted_ids, pick_next_entry, save_posted_ids
+from image_generator import generate_image, insert_images, raw_image_url, save_generated_image
 from rss_reader import fetch_feed_entries
 from tistory_export import write_tistory_draft
 
 FEEDS_PATH = "feeds.txt"
 POSTED_IDS_PATH = "posted_ids.json"
 TISTORY_DRAFTS_DIR = "tistory_drafts"
+GENERATED_IMAGES_DIR = "generated_images"
 
 
 def _load_feed_urls(path: str) -> list[str]:
@@ -36,12 +38,23 @@ def run() -> str | None:
         return None
 
     article = write_article(settings, entry)
+    link_hash = hash_link(entry["link"])
+
+    image_urls = []
+    for i, prompt in enumerate(article.get("image_prompts", []), start=1):
+        image_bytes = generate_image(settings, prompt)
+        if image_bytes is None:
+            image_urls.append(None)
+            continue
+        image_filename = f"{datetime.date.today().isoformat()}-{link_hash[:10]}-{i}.png"
+        save_generated_image(GENERATED_IMAGES_DIR, image_filename, image_bytes)
+        image_urls.append(raw_image_url(GENERATED_IMAGES_DIR, image_filename))
+    body_html = insert_images(article["body_html"], image_urls)
 
     keywords = article.get("keywords", [])
     products = search_products(keywords[0]) if keywords else []
 
-    html = assemble_post_html(article["body_html"], products)
-    link_hash = hash_link(entry["link"])
+    html = assemble_post_html(body_html, products)
 
     tistory_filename = f"{datetime.date.today().isoformat()}-{link_hash[:10]}.html"
     write_tistory_draft(TISTORY_DRAFTS_DIR, tistory_filename, article["title"], html)

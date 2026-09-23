@@ -29,6 +29,7 @@ def test_write_article_parses_json_response(mock_post):
 
     assert result["title"] == "제목"
     assert result["keywords"] == ["노트북"]
+    assert result["image_prompts"] == []
     assert mock_post.call_args.kwargs["json"]["messages"][-1] == {
         "role": "assistant",
         "content": "{",
