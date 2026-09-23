@@ -67,6 +67,9 @@ def pick_and_write_script(settings: Settings, candidates: list[dict]) -> dict:
     if not isinstance(index, int) or not (0 <= index < len(candidates)):
         raise ValueError(f"chosen_index가 후보 범위를 벗어남: {index!r}")
 
-    result["chosen_link"] = candidates[index]["link"]
-    result.setdefault("keywords", [])
-    return result
+    return {
+        "chosen_link": candidates[index]["link"],
+        "title": result["title"],
+        "sentences": result["sentences"],
+        "keywords": result.get("keywords", []),
+    }

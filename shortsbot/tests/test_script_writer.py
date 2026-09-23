@@ -39,6 +39,7 @@ def test_pick_and_write_script_parses_chosen_candidate(mock_post):
     assert result["title"] == "쇼츠 제목"
     assert result["sentences"] == ["문장1", "문장2"]
     assert result["keywords"] == ["노트북"]
+    assert "chosen_index" not in result
 
 
 @patch("script_writer.requests.post")
