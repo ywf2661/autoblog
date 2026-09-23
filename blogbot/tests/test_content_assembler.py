@@ -19,6 +19,8 @@ def test_assemble_post_html_appends_products_section():
     assert "1,000,000원" in html
     assert '<img src="http://img"' in html
     assert 'href="http://x"' in html
+    assert "<table" in html
+    assert "display:flex" not in html
     assert "쿠팡 파트너스 활동의 일환으로" in html
 
 

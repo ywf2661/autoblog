@@ -6,18 +6,18 @@ def assemble_post_html(body_html: str, products: list[dict]) -> str:
     if not products:
         return body_html
 
-    cards = "".join(
-        '<div style="flex:1 1 140px;max-width:180px;border:1px solid #e5e5e5;'
-        'border-radius:10px;padding:12px;text-align:center;">'
-        f'<a href="{html.escape(p["productUrl"])}" '
-        'style="text-decoration:none;color:inherit;display:block;">'
+    # ponytail: div+flex 대신 table을 쓰는 이유 — 티스토리 등 블로그 에디터가
+    # 붙여넣기 시 style 속성을 걷어내는 경우가 많아 flex 레이아웃이 깨짐.
+    # table/td는 구조 자체가 레이아웃이라 훨씬 안정적으로 살아남는다(이메일 HTML과 동일한 이유).
+    width_pct = max(100 // len(products), 20)
+    cells = "".join(
+        f'<td align="center" valign="top" width="{width_pct}%">'
+        f'<a href="{html.escape(p["productUrl"])}">'
         f'<img src="{html.escape(p["productImage"])}" alt="{html.escape(p["productName"])}" '
-        'style="width:100%;max-width:150px;border-radius:6px;">'
-        '<div style="margin-top:8px;font-size:14px;line-height:1.4;">'
-        f'{html.escape(p["productName"])}</div>'
-        '<div style="margin-top:6px;font-weight:bold;color:#e53935;">'
-        f'{p["productPrice"]:,}원</div>'
-        "</a></div>"
+        'width="150" style="max-width:100%"><br>'
+        f'{html.escape(p["productName"])}<br>'
+        f'<font color="#e53935"><b>{p["productPrice"]:,}원</b></font>'
+        "</a></td>"
         for p in products
     )
     disclosure = (
@@ -26,7 +26,7 @@ def assemble_post_html(body_html: str, products: list[dict]) -> str:
     )
     products_section = (
         "<h3>관련 상품</h3>"
-        f'<div style="display:flex;flex-wrap:wrap;gap:12px;margin:12px 0;">{cards}</div>'
+        f'<table width="100%" cellpadding="8"><tr>{cells}</tr></table>'
         f"{disclosure}"
     )
     return f"{body_html}\n{products_section}"
