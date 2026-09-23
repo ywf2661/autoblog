@@ -30,7 +30,8 @@ GitHub Actions가 매일 1회 자동 실행(`.github/workflows/blogbot.yml`, UTC
 2. Claude API로 완전히 새로 작성 (원문 요약만 참고, 전문 미사용)
 3. 글 키워드로 `curated_products.json`에서 관련상품 조회 후 본문에 섹션 추가
 4. Blogger에 **draft(임시저장)**로 생성 — 공개 발행은 수동으로 Blogger 대시보드에서 진행
-5. 처리한 기사는 `posted_ids.json`에 기록해 중복 방지
+5. 같은 제목+HTML을 `tistory_drafts/`에 파일로도 저장 — 티스토리는 공식 posting API가 없어서(2024.02 종료) 자동 발행이 불가능하므로, 이 파일을 열어 제목/본문을 티스토리 글쓰기 화면에 직접 복붙해서 발행
+6. 처리한 기사는 `posted_ids.json`에 기록해 중복 방지
 
 ## 관련상품 링크 (`curated_products.json`)
 

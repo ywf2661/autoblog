@@ -1,3 +1,5 @@
+import datetime
+
 from article_writer import write_article
 from blogger_api import create_draft_post, refresh_access_token
 from config import load_settings
@@ -5,9 +7,11 @@ from content_assembler import assemble_post_html
 from coupang_search import search_products
 from dedup import hash_link, load_posted_ids, pick_next_entry, save_posted_ids
 from rss_reader import fetch_feed_entries
+from tistory_export import write_tistory_draft
 
 FEEDS_PATH = "feeds.txt"
 POSTED_IDS_PATH = "posted_ids.json"
+TISTORY_DRAFTS_DIR = "tistory_drafts"
 
 
 def _load_feed_urls(path: str) -> list[str]:
@@ -37,11 +41,15 @@ def run() -> str | None:
     products = search_products(keywords[0]) if keywords else []
 
     html = assemble_post_html(article["body_html"], products)
+    link_hash = hash_link(entry["link"])
+
+    tistory_filename = f"{datetime.date.today().isoformat()}-{link_hash[:10]}.html"
+    write_tistory_draft(TISTORY_DRAFTS_DIR, tistory_filename, article["title"], html)
 
     access_token = refresh_access_token(settings)
     edit_url = create_draft_post(settings, access_token, article["title"], html)
 
-    posted_ids.add(hash_link(entry["link"]))
+    posted_ids.add(link_hash)
     save_posted_ids(POSTED_IDS_PATH, posted_ids)
 
     return edit_url

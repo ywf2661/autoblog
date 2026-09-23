@@ -6,6 +6,7 @@ import main
 @patch("main.save_posted_ids")
 @patch("main.create_draft_post")
 @patch("main.refresh_access_token")
+@patch("main.write_tistory_draft")
 @patch("main.search_products")
 @patch("main.write_article")
 @patch("main.load_posted_ids")
@@ -19,6 +20,7 @@ def test_run_creates_draft_for_next_entry(
     mock_load_posted,
     mock_write_article,
     mock_search,
+    mock_write_tistory,
     mock_refresh,
     mock_create_draft,
     mock_save_posted,
@@ -42,6 +44,9 @@ def test_run_creates_draft_for_next_entry(
     assert result == "http://blogger-edit-url"
     mock_save_posted.assert_called_once()
     mock_search.assert_called_once_with("노트북")
+    mock_write_tistory.assert_called_once()
+    assert mock_write_tistory.call_args[0][2] == "제목"
+    assert mock_write_tistory.call_args[0][3] == "<p>본문</p>"
 
 
 @patch("main.load_posted_ids")
