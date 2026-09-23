@@ -35,8 +35,8 @@ blogbot과 같은 AI 뉴스 RSS 풀에서 가장 흥미로운 기사 1건을 골
   감수하는 구조입니다.
 - **edge-tts는 비공식 라이브러리**: 마이크로소프트가 예고 없이 막을 수 있습니다. 막히면 README의 TTS 엔진을
   교체해야 합니다.
-- ffmpeg는 GitHub Actions `ubuntu-latest`에 기본 설치되어 있어 별도 설치 불필요. 로컬 실행 시에는 직접 설치
-  필요합니다.
+- ffmpeg는 워크플로에서 `apt-get install`로 직접 설치합니다(`ubuntu-latest`에 기본 설치되어 있지 않음 —
+  실제로 겪은 문제). 로컬 실행 시에도 직접 설치 필요합니다.
 
 ## 테스트
 
