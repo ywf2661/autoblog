@@ -28,6 +28,7 @@ def upload_video(
     settings: Settings, access_token: str, video_path: str, title: str, description: str
 ) -> str:
     """영상을 채널에 공개(public)로 업로드하고 시청 URL을 반환한다."""
+    title = title[:100]  # YouTube snippet.title 최대 100자
     credentials = Credentials(token=access_token)
     youtube = build("youtube", "v3", credentials=credentials)
     media = MediaFileUpload(video_path, mimetype="video/mp4", resumable=True)

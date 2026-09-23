@@ -12,9 +12,8 @@ def build_description(
 
     lines.append(f"📢 AI 뉴스 텔레그램: {telegram_url}")
 
-    if keywords:
-        lines.append("")
-        hashtags = " ".join(f"#{k.replace(' ', '')}" for k in ["AI", "쇼츠", *keywords])
-        lines.append(hashtags)
+    lines.append("")
+    tags = ["AI", "쇼츠", *keywords]
+    lines.append(" ".join(f"#{k.replace(' ', '')}" for k in tags))
 
     return "\n".join(lines)

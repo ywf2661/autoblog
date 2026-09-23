@@ -20,3 +20,10 @@ def test_build_description_omits_product_section_when_empty():
 
     assert "관련 상품" not in result
     assert "https://t.me/channel" in result
+
+
+def test_build_description_always_includes_fixed_hashtags_even_without_keywords():
+    result = build_description("오늘의 AI 소식 요약", [], "https://t.me/channel", [])
+
+    assert "#AI" in result
+    assert "#쇼츠" in result

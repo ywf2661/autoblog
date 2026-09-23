@@ -39,3 +39,20 @@ def test_upload_video_returns_watch_url_and_sets_public(
     assert insert_kwargs["body"]["status"]["privacyStatus"] == "public"
     assert insert_kwargs["body"]["snippet"]["channelId"] == "chan123"
     assert insert_kwargs["body"]["snippet"]["title"] == "제목"
+
+
+@patch("youtube_api.MediaFileUpload")
+@patch("youtube_api.build")
+@patch("youtube_api.Credentials")
+def test_upload_video_truncates_title_over_100_chars(mock_credentials, mock_build, mock_media):
+    mock_request = MagicMock()
+    mock_request.next_chunk.side_effect = [(None, {"id": "abc123"})]
+    mock_youtube = MagicMock()
+    mock_youtube.videos.return_value.insert.return_value = mock_request
+    mock_build.return_value = mock_youtube
+
+    long_title = "가" * 150
+    upload_video(_settings(), "token", "video.mp4", long_title, "설명")
+
+    insert_kwargs = mock_youtube.videos.return_value.insert.call_args.kwargs
+    assert len(insert_kwargs["body"]["snippet"]["title"]) == 100
