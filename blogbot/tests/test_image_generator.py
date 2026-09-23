@@ -1,4 +1,3 @@
-import base64
 from unittest.mock import MagicMock, patch
 
 import requests
@@ -12,35 +11,27 @@ from image_generator import (
 )
 
 
-def _settings(gemini_api_key="gk"):
-    return Settings("ak", "gcid", "gcs", "grt", "blogid", gemini_api_key)
+def _settings(hf_api_key="hk"):
+    return Settings("ak", "gcid", "gcs", "grt", "blogid", hf_api_key)
 
 
 @patch("image_generator.requests.post")
-def test_generate_image_returns_decoded_bytes(mock_post):
+def test_generate_image_returns_raw_bytes(mock_post):
     mock_response = MagicMock()
     mock_response.raise_for_status.return_value = None
-    mock_response.json.return_value = {
-        "candidates": [
-            {
-                "content": {
-                    "parts": [
-                        {"inlineData": {"data": base64.b64encode(b"pngdata").decode()}}
-                    ]
-                }
-            }
-        ]
-    }
+    mock_response.content = b"pngdata"
     mock_post.return_value = mock_response
 
     result = generate_image(_settings(), "노트북 삽화")
 
     assert result == b"pngdata"
+    assert mock_post.call_args.kwargs["headers"]["Authorization"] == "Bearer hk"
+    assert mock_post.call_args.kwargs["json"] == {"inputs": "노트북 삽화"}
 
 
 @patch("image_generator.requests.post")
 def test_generate_image_skips_request_when_key_missing(mock_post):
-    result = generate_image(_settings(gemini_api_key=""), "노트북 삽화")
+    result = generate_image(_settings(hf_api_key=""), "노트북 삽화")
 
     assert result is None
     mock_post.assert_not_called()
@@ -49,20 +40,6 @@ def test_generate_image_skips_request_when_key_missing(mock_post):
 @patch("image_generator.requests.post")
 def test_generate_image_returns_none_on_request_error(mock_post):
     mock_post.side_effect = requests.RequestException("boom")
-
-    result = generate_image(_settings(), "노트북 삽화")
-
-    assert result is None
-
-
-@patch("image_generator.requests.post")
-def test_generate_image_returns_none_when_no_image_part(mock_post):
-    mock_response = MagicMock()
-    mock_response.raise_for_status.return_value = None
-    mock_response.json.return_value = {
-        "candidates": [{"content": {"parts": [{"text": "설명만 있음"}]}}]
-    }
-    mock_post.return_value = mock_response
 
     result = generate_image(_settings(), "노트북 삽화")
 

@@ -1,4 +1,3 @@
-import base64
 import html
 import os
 
@@ -6,47 +5,34 @@ import requests
 
 from config import Settings
 
-# ponytail: 모델명은 Gemini API 이미지 생성 모델이 바뀌면 깨질 수 있음 —
-# AI Studio에서 현재 사용 가능한 이미지 생성 모델명으로 갱신할 것.
-API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-MODEL = "gemini-2.5-flash-image"
+# ponytail: hf-inference의 무료 text-to-image 모델은 바뀔 수 있음 —
+# https://huggingface.co/docs/inference-providers/en/providers/hf-inference 에서
+# 현재 지원 모델로 갱신할 것.
+MODEL = "stabilityai/stable-diffusion-3-medium-diffusers"
+API_URL = f"https://router.huggingface.co/hf-inference/models/{MODEL}"
 
 GITHUB_RAW_BASE = "https://raw.githubusercontent.com/ywf2661/autoblog/master/blogbot"
 
 
 def generate_image(settings: Settings, prompt: str) -> bytes | None:
     """프롬프트로 이미지를 생성해 원본 bytes를 반환한다. 키가 없거나 실패하면 None."""
-    if not settings.gemini_api_key:
+    if not settings.hf_api_key:
         return None
     try:
         response = requests.post(
-            API_URL.format(model=MODEL),
+            API_URL,
             headers={
-                "x-goog-api-key": settings.gemini_api_key,
+                "Authorization": f"Bearer {settings.hf_api_key}",
                 "Content-Type": "application/json",
             },
-            json={
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
-            },
+            json={"inputs": prompt},
             timeout=60,
         )
         response.raise_for_status()
-        body = response.json()
-        parts = body["candidates"][0]["content"]["parts"]
-        for part in parts:
-            # 문서마다 camelCase/snake_case가 섞여 있어 둘 다 확인
-            inline = part.get("inlineData") or part.get("inline_data")
-            if inline:
-                return base64.b64decode(inline["data"])
-        print(f"이미지 생성 응답에 이미지 파트 없음, 건너뜀: {body!r}")
-        return None
+        return response.content
     except requests.RequestException as e:
         body_text = e.response.text if e.response is not None else "(응답 없음)"
         print(f"이미지 생성 요청 실패, 건너뜀: {e} / 응답: {body_text}")
-        return None
-    except (KeyError, IndexError, ValueError, TypeError) as e:
-        print(f"이미지 생성 응답 파싱 실패, 건너뜀: {e}")
         return None
 
 

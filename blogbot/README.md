@@ -19,17 +19,17 @@ AI(Claude 등) 관련 RSS 피드를 매일 1건 확인해 Claude로 재작성하
 | GOOGLE_CLIENT_SECRET | Google OAuth 클라이언트 secret |
 | GOOGLE_REFRESH_TOKEN | 1회 OAuth 동의로 발급받은 refresh token |
 | BLOGGER_BLOG_ID | 대상 Blogger 블로그 ID |
-| GEMINI_API_KEY | Google AI Studio에서 발급 (선택 — 없으면 본문 중간 삽화 생성 생략) |
+| HF_API_KEY | Hugging Face에서 발급한 무료 계정 토큰 (선택 — 없으면 본문 중간 삽화 생성 생략) |
 
 ## 배포
 
-GitHub Actions가 매일 1회 자동 실행(`.github/workflows/blogbot.yml`, UTC 00:00 = KST 09:00). 저장소 Secrets에 위 값들 등록 필요(GEMINI_API_KEY는 선택).
+GitHub Actions가 매일 1회 자동 실행(`.github/workflows/blogbot.yml`, UTC 00:00 = KST 09:00). 저장소 Secrets에 위 값들 등록 필요(HF_API_KEY는 선택).
 
 ## 발행 흐름
 
 1. `feeds.txt`의 RSS에서 아직 다루지 않은 기사 중 가장 최근 1건 선택
 2. Claude API로 완전히 새로 작성 (원문 요약만 참고, 전문 미사용). 본문 중 두 지점에 삽화 자리표시자를 넣도록 지시
-3. 자리표시자마다 Gemini API로 삽화 생성 → `generated_images/`에 저장 → GitHub raw URL로 본문에 삽입 (GEMINI_API_KEY 없으면 자리표시자만 제거하고 진행)
+3. 자리표시자마다 Hugging Face의 무료 `hf-inference` 서버리스로 삽화 생성 → `generated_images/`에 저장 → GitHub raw URL로 본문에 삽입 (HF_API_KEY 없거나 무료 한도 소진 시 자리표시자만 제거하고 진행)
 4. 글 키워드로 `curated_products.json`에서 관련상품 조회 후 본문에 섹션 추가
 5. Blogger에 **draft(임시저장)**로 생성 — 공개 발행은 수동으로 Blogger 대시보드에서 진행
 6. 같은 제목+HTML을 `tistory_drafts/`에 파일로도 저장 — 티스토리는 공식 posting API가 없어서(2024.02 종료) 자동 발행이 불가능하므로, 이 파일을 열어 제목/본문을 티스토리 글쓰기 화면에 직접 복붙해서 발행
@@ -59,7 +59,7 @@ GitHub Actions가 매일 1회 자동 실행(`.github/workflows/blogbot.yml`, UTC
 
 - Google OAuth 동의 화면이 "테스트" 상태면 refresh_token이 7일 후 만료될 수 있습니다. Cloud Console에서 "게시" 상태로 전환하세요.
 - 애드센스는 저품질/대량 자동생성 콘텐츠에 대한 정책이 있습니다. draft를 반드시 검토 후 발행하세요.
-- `image_generator.py`의 `MODEL` 상수는 Gemini의 이미지 생성 모델명이 바뀌면 깨질 수 있습니다. 생성이 계속 실패하면(조용히 생략되므로 본문에 삽화가 안 보이는 식으로 나타남) AI Studio에서 현재 사용 가능한 이미지 생성 모델명으로 갱신하세요.
+- 삽화 생성은 Hugging Face의 무료 `hf-inference` 프로바이더를 씁니다. `HF_API_KEY`는 [huggingface.co](https://huggingface.co) 무료 가입 후 Settings → Access Tokens에서 발급(Read 권한이면 충분). 무료 한도를 넘거나 `image_generator.py`의 `MODEL` 상수가 가리키는 모델이 내려가면 생성이 조용히 생략됩니다(에러 없이 본문에 삽화만 안 보임) — Action 로그의 "이미지 생성 요청 실패" 줄을 확인하세요.
 
 ## 테스트
 
