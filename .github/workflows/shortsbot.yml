@@ -1,8 +1,9 @@
 name: ai-shortsbot
 
 on:
-  schedule:
-    - cron: "0 11 * * *"  # 매일 UTC 11:00 (KST 20:00) — blogbot(KST 09:00)과 겹치지 않게
+  # 사용자 요청으로 스케줄 일시중지 (2026-09-30). 재개하려면 아래 두 줄 주석 해제.
+  # schedule:
+  #   - cron: "0 11 * * *"  # 매일 UTC 11:00 (KST 20:00)
   workflow_dispatch: {}
 
 permissions:
