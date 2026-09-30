@@ -25,7 +25,7 @@ def generate_image(settings: Settings, prompt: str, aspect_ratio: str = "16:9") 
         response = requests.post(
             f"{API_BASE}/{MODEL}",
             headers=headers,
-            json={"prompt": prompt, "aspect_ratio": aspect_ratio, "resolution": "1k"},
+            json={"prompt": prompt, "aspect_ratio": aspect_ratio, "resolution": "720p"},
             timeout=30,
         )
         response.raise_for_status()
