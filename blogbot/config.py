@@ -11,7 +11,7 @@ class Settings:
     google_client_secret: str
     google_refresh_token: str
     blogger_blog_id: str
-    hf_api_key: str = ""
+    higgsfield_api_key: str = ""  # "KEY_ID:KEY_SECRET"
 
 
 def load_settings() -> Settings:
@@ -33,5 +33,5 @@ def load_settings() -> Settings:
         google_client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
         google_refresh_token=os.environ["GOOGLE_REFRESH_TOKEN"],
         blogger_blog_id=os.environ["BLOGGER_BLOG_ID"],
-        hf_api_key=os.getenv("HF_API_KEY", ""),
+        higgsfield_api_key=os.getenv("HIGGSFIELD_API_KEY", ""),
     )

@@ -3,7 +3,9 @@ name: ai-blogbot
 
 on:
   schedule:
-    - cron: "0 0 * * *"  # 매일 UTC 00:00 (KST 09:00)
+    # 매일 UTC 21:00 (KST 06:00) — Actions 지연(최대 ~1h) 감안해 07~08시 출근길 전에 초안 준비.
+    # Blogger(구글 유입)는 준비되는 대로 오전 7~8시 공개, 티스토리(초기엔 다음 유입)는 18:30 예약발행.
+    - cron: "0 21 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -27,7 +29,7 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
           BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
-          HF_API_KEY: ${{ secrets.HF_API_KEY }}
+          HIGGSFIELD_API_KEY: ${{ secrets.HIGGSFIELD_API_KEY }}
         run: python main.py
       - name: posted_ids.json 커밋 (중복게시 이력 유지)
         run: |

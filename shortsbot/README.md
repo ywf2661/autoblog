@@ -19,7 +19,7 @@ blogbot과 같은 AI 뉴스 RSS 풀에서 가장 흥미로운 기사 1건을 골
 | YOUTUBE_REFRESH_TOKEN | `youtube.upload` 스코프로 새로 재동의해서 받은 refresh token — blogbot의 GOOGLE_REFRESH_TOKEN과 다름 |
 | YOUTUBE_CHANNEL_ID | 업로드 대상 채널 ID |
 | TELEGRAM_CHANNEL_URL | 설명란에 넣을 텔레그램 채널 초대 링크 |
-| HF_API_KEY | 선택 — 없으면 이미지 대신 단색 배경으로 대체 |
+| HIGGSFIELD_API_KEY | 선택(`KEY_ID:KEY_SECRET`) — 없으면 이미지 대신 단색 배경으로 대체 |
 
 ## 사전 준비
 

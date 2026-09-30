@@ -12,10 +12,10 @@ class Settings:
     youtube_refresh_token: str
     youtube_channel_id: str
     telegram_channel_url: str
-    # ponytail: hf_api_key 필드명은 blogbot/image_generator.py가 재사용 시
+    # ponytail: higgsfield_api_key 필드명은 blogbot/image_generator.py가 재사용 시
     # sys.path 순서 때문에 이 Settings를 받게 됨(blogbot_bridge.py 참고) —
     # 필드명을 바꾸면 image_generator.generate_image()가 깨짐
-    hf_api_key: str = ""
+    higgsfield_api_key: str = ""
 
 
 def load_settings() -> Settings:
@@ -39,5 +39,5 @@ def load_settings() -> Settings:
         youtube_refresh_token=os.environ["YOUTUBE_REFRESH_TOKEN"],
         youtube_channel_id=os.environ["YOUTUBE_CHANNEL_ID"],
         telegram_channel_url=os.environ["TELEGRAM_CHANNEL_URL"],
-        hf_api_key=os.getenv("HF_API_KEY", ""),
+        higgsfield_api_key=os.getenv("HIGGSFIELD_API_KEY", ""),
     )

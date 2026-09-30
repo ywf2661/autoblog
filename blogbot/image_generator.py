@@ -1,38 +1,58 @@
 import html
 import os
+import time
 
 import requests
 
 from config import Settings
 
-# ponytail: hf-inference의 무료 text-to-image 모델은 바뀔 수 있음 —
-# https://huggingface.co/docs/inference-providers/en/providers/hf-inference 에서
-# 현재 지원 모델로 갱신할 것.
-MODEL = "stabilityai/stable-diffusion-3-medium-diffusers"
-API_URL = f"https://router.huggingface.co/hf-inference/models/{MODEL}"
+# ponytail: 모델 경로·요청 스키마는 Higgsfield가 바꿀 수 있음 —
+# https://docs.higgsfield.ai/docs/llms.txt 에서 현재 스키마 확인 후 갱신할 것.
+API_BASE = "https://api.higgsfield.ai"
+MODEL = "higgsfield-ai/soul/v2/standard"
+POLL_INTERVAL_SEC = 3
+POLL_TIMEOUT_SEC = 180
 
 GITHUB_RAW_BASE = "https://raw.githubusercontent.com/ywf2661/autoblog/master/blogbot"
 
 
-def generate_image(settings: Settings, prompt: str) -> bytes | None:
-    """프롬프트로 이미지를 생성해 원본 bytes를 반환한다. 키가 없거나 실패하면 None."""
-    if not settings.hf_api_key:
+def generate_image(settings: Settings, prompt: str, aspect_ratio: str = "16:9") -> bytes | None:
+    """Higgsfield로 이미지를 생성해 원본 bytes를 반환한다. 키가 없거나 실패하면 None."""
+    if not settings.higgsfield_api_key:
         return None
+    headers = {"Authorization": f"Key {settings.higgsfield_api_key}"}
     try:
         response = requests.post(
-            API_URL,
-            headers={
-                "Authorization": f"Bearer {settings.hf_api_key}",
-                "Content-Type": "application/json",
-            },
-            json={"inputs": prompt},
-            timeout=60,
+            f"{API_BASE}/{MODEL}",
+            headers=headers,
+            json={"prompt": prompt, "aspect_ratio": aspect_ratio, "resolution": "1k"},
+            timeout=30,
         )
         response.raise_for_status()
-        return response.content
+        status_url = response.json()["status_url"]
+
+        deadline = time.monotonic() + POLL_TIMEOUT_SEC
+        while time.monotonic() < deadline:
+            result = requests.get(status_url, headers=headers, timeout=30)
+            result.raise_for_status()
+            data = result.json()
+            status = data.get("status")
+            if status == "completed":
+                image = requests.get(data["images"][0]["url"], timeout=60)
+                image.raise_for_status()
+                return image.content
+            if status in ("failed", "nsfw", "cancelled"):
+                print(f"이미지 생성 실패({status}), 건너뜀: {data}")
+                return None
+            time.sleep(POLL_INTERVAL_SEC)
+        print(f"이미지 생성 시간 초과({POLL_TIMEOUT_SEC}s), 건너뜀: {status_url}")
+        return None
     except requests.RequestException as e:
         body_text = e.response.text if e.response is not None else "(응답 없음)"
         print(f"이미지 생성 요청 실패, 건너뜀: {e} / 응답: {body_text}")
+        return None
+    except (KeyError, IndexError, ValueError) as e:
+        print(f"이미지 생성 응답 형식이 예상과 다름, 건너뜀: {e!r}")
         return None
 
 

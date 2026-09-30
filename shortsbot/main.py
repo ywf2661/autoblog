@@ -60,11 +60,11 @@ def run() -> str | None:
 
     image_paths = []
     for i, image_prompt in enumerate(script["image_prompts"], start=1):
-        image_bytes = generate_image(settings, image_prompt)
+        image_bytes = generate_image(settings, image_prompt, aspect_ratio="9:16")
         if image_bytes is not None and not (
             image_bytes.startswith(b"\x89PNG") or image_bytes.startswith(b"\xff\xd8")
         ):
-            # HF returned something that isn't actually image data (e.g. an
+            # The image API returned something that isn't actually image data (e.g. an
             # error body) -- ffmpeg would fail to decode it and kill the
             # whole run. Fall back to a solid-color background instead.
             image_bytes = None

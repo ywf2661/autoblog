@@ -87,8 +87,8 @@ def test_run_uploads_video_for_chosen_candidate(
     assert result == "https://youtu.be/abc123"
     mock_save_posted.assert_called_once()
     mock_search.assert_called_once_with("노트북")
-    mock_generate_image.assert_any_call(settings, "prompt1")
-    mock_generate_image.assert_any_call(settings, "prompt2")
+    mock_generate_image.assert_any_call(settings, "prompt1", aspect_ratio="9:16")
+    mock_generate_image.assert_any_call(settings, "prompt2", aspect_ratio="9:16")
     mock_assemble.assert_called_once()
     assemble_args = mock_assemble.call_args[0]
     assert assemble_args[0] == ["문장1", "문장2"]
