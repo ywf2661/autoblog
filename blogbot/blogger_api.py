@@ -23,14 +23,14 @@ def refresh_access_token(settings: Settings) -> str:
 
 
 def create_draft_post(
-    settings: Settings, access_token: str, title: str, html: str
+    settings: Settings, access_token: str, title: str, html: str, labels: list[str] | None = None
 ) -> str:
     """Blogger에 임시저장(draft) 글을 생성하고 편집 URL을 반환한다."""
     url = POSTS_URL.format(blog_id=settings.blogger_blog_id) + "?isDraft=true"
     response = requests.post(
         url,
         headers={"Authorization": f"Bearer {access_token}"},
-        json={"title": title, "content": html},
+        json={"title": title, "content": html, "labels": labels or []},
         timeout=30,
     )
     response.raise_for_status()

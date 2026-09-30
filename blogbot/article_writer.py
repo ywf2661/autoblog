@@ -19,10 +19,11 @@ PROMPT_TEMPLATE = """다음은 한 AI 관련 뉴스 기사의 제목과 요약�
 본문 중 자연스러운 두 지점(예: 첫 소제목 문단과 중간 소제목 문단)에 [IMAGE_1], [IMAGE_2] 자리표시자를 각각 한 번씩 넣어라.
 각 자리표시자에 어울리는 삽화를 묘사하는 이미지 생성 프롬프트를 image_prompts에 순서대로 넣어라 (사진이 아닌 삽화/일러스트 스타일로 묘사할 것 — 실존 인물·브랜드 로고를 특정하지 말 것).
 글 마지막에는 "출처: {link}" 문구를 포함하라.
+검색 유입용 태그를 5~7개 뽑아 tags에 넣어라. 첫 번째는 항상 "AI뉴스", 나머지는 글의 핵심 기업·제품·기술 용어를 한국 사용자가 실제로 검색할 법한 표기로 쓰고(예: "오픈AI", "챗GPT", "AI규제"), # 기호는 붙이지 마라.
 블로그 글과 어울리는, 쿠팡에서 검색할 수 있는 실존 상품 카테고리 키워드를 1~2개 뽑아라 (예: "노트북", "블루투스 이어폰").
 
 다음 JSON 형식으로만 응답하라. 다른 텍스트는 포함하지 마라:
-{{"title": "블로그 글 제목", "body_html": "<h3>...</h3><p>...[IMAGE_1]...</p><h3>...</h3><p>...[IMAGE_2]...</p>", "keywords": ["키워드1"], "image_prompts": ["삽화 프롬프트1", "삽화 프롬프트2"]}}
+{{"title": "블로그 글 제목", "body_html": "<h3>...</h3><p>...[IMAGE_1]...</p><h3>...</h3><p>...[IMAGE_2]...</p>", "keywords": ["키워드1"], "tags": ["AI뉴스", "태그2"], "image_prompts": ["삽화 프롬프트1", "삽화 프롬프트2"]}}
 """
 
 
@@ -63,4 +64,5 @@ def write_article(settings: Settings, entry: dict) -> dict:
         raise ValueError(f"Claude 응답에 필수 필드 누락: {result!r}")
     result.setdefault("keywords", [])
     result.setdefault("image_prompts", [])
+    result.setdefault("tags", [])
     return result

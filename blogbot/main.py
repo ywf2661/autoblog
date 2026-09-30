@@ -57,10 +57,11 @@ def run() -> str | None:
     html = assemble_post_html(body_html, products)
 
     tistory_filename = f"{datetime.date.today().isoformat()}-{link_hash[:10]}.html"
-    write_tistory_draft(TISTORY_DRAFTS_DIR, tistory_filename, article["title"], html)
+    tags = article.get("tags", [])
+    write_tistory_draft(TISTORY_DRAFTS_DIR, tistory_filename, article["title"], html, tags)
 
     access_token = refresh_access_token(settings)
-    edit_url = create_draft_post(settings, access_token, article["title"], html)
+    edit_url = create_draft_post(settings, access_token, article["title"], html, tags)
 
     posted_ids.add(link_hash)
     save_posted_ids(POSTED_IDS_PATH, posted_ids)

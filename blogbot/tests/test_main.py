@@ -38,6 +38,7 @@ def test_run_creates_draft_for_next_entry(
         "title": "제목",
         "body_html": "<p>본문</p>",
         "keywords": ["노트북"],
+        "tags": ["AI뉴스", "노트북"],
         "image_prompts": [],
     }
     mock_search.return_value = []
@@ -48,6 +49,8 @@ def test_run_creates_draft_for_next_entry(
     result = main.run()
 
     assert result == "http://blogger-edit-url"
+    assert mock_create_draft.call_args[0][4] == ["AI뉴스", "노트북"]
+    assert mock_write_tistory.call_args[0][4] == ["AI뉴스", "노트북"]
     mock_save_posted.assert_called_once()
     mock_search.assert_called_once_with("노트북")
     mock_generate_image.assert_not_called()

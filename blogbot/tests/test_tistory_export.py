@@ -9,7 +9,13 @@ def test_write_tistory_draft_creates_file_with_title_comment_and_html(tmp_path):
     path = write_tistory_draft(str(dir_path), "2026-09-23-abc.html", "제목", "<p>본문</p>")
 
     content = open(path, encoding="utf-8").read()
-    assert content == "<!-- 제목: 제목 -->\n<p>본문</p>"
+    assert content == "<!-- 제목: 제목 -->\n<!-- 태그:  -->\n<p>본문</p>"
+
+
+def test_write_tistory_draft_writes_tag_line(tmp_path):
+    path = write_tistory_draft(str(tmp_path), "f.html", "t", "<p>b</p>", ["AI뉴스", "오픈AI"])
+
+    assert "<!-- 태그: AI뉴스, 오픈AI -->" in open(path, encoding="utf-8").read()
 
 
 def test_write_tistory_draft_creates_missing_directory(tmp_path):
